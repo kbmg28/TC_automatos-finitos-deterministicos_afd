@@ -124,18 +124,19 @@ BOOL carrega_alfabeto(char linha_arq[]){
 BOOL validaEstadosAndAlfabeto(char estadoPartida, char estadoChegada, char simbolo){
 	
 	if( strchr(ALFABETO, simbolo) == NULL){
-		if (simbolo == LAMBDA)	{ printf ("lambda"); return TRUE; }
-		printf ("\t\'%c\' Nao pertence ao alfabeto\n", simbolo);
+		if (simbolo == LAMBDA)	return TRUE;
+		//printf ("\t\'%c\' Nao pertence ao alfabeto\n", simbolo);
+		puts ("ERRO 01");
 		return FALSE;
 	}
 	
 	if( strchr(ESTADOS, estadoPartida) == NULL){
-		printf ("\t\'%c\'Nao pertence ao conjunto de estados\n", estadoPartida);
+		printf ("\t Estado de partida \'%c\' nao pertence ao conjunto de estados\n", estadoPartida);
 		return FALSE;
 	}
 	
 	if( strchr(ESTADOS, estadoChegada) == NULL){
-		printf ("\t \'%c\'Nao pertence ao conjunto de estados\n", estadoChegada);
+		printf ("\t Estado de chegada \'%c\' nao pertence ao conjunto de estados\n", estadoChegada);
 		return FALSE;
 	}
 	
@@ -148,7 +149,7 @@ BOOL carrega_transicoes (char linha_arq[]){
 	estado.partida = linha_arq[0];
 	estado.chegada = linha_arq[2];
 	estado.simbolo_consumido = linha_arq[4];
-
+//	printf ("\t%c %c %c\n", estado.partida, estado.chegada, estado.simbolo_consumido);
 	if (validaEstadosAndAlfabeto(estado.partida, estado.chegada, estado.simbolo_consumido) == FALSE){
 		puts("\t Erro transicao");
 		exit(1);
@@ -243,7 +244,7 @@ int verifica_string(){
 		}
 	}
 	
-	( strchr(ESTADOS_FINAIS, estado_atual.chegada) != NULL) ? puts ("sim") : puts ("nao");
+	( strchr(ESTADOS_FINAIS, estado_atual.chegada) != NULL) ? puts ("sim") : puts ("ERRO 02");
 }
 
 int main(){
