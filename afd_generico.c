@@ -18,8 +18,8 @@ char ESTADOS_FINAIS[5];
 
 
 typedef struct Transicao{
-	char estado_partida; 
-	char estado_chegada; 
+	char partida; 
+	char chegada; 
 	char simbolo_consumido; 
 	
 } TRANSICAO;
@@ -61,7 +61,7 @@ void print_lista (PtrLista lista){
 	if (lista == NULL)	return;
 	//puts ("\n\t--Lista--\n");
 	while (lista){
-		printf ("%c %c %c ;\n", lista->estado.estado_partida, lista->estado.estado_chegada, lista->estado.simbolo_consumido, lista->estado.estado_partida);
+		printf ("%c %c %c ;\n", lista->estado.partida, lista->estado.chegada, lista->estado.simbolo_consumido, lista->estado.partida);
 		lista = lista->prox;
 	}
 }
@@ -70,11 +70,11 @@ TRANSICAO* buscaTransacaoNoConjuntoDeEstados (PtrLista estados, TRANSICAO* estad
 	if (estados == NULL)	return NULL;
 	//puts ("\n\t--Lista--\n");
 	while (estados){
-		//printf ("lido: %c %c %c ;\n", estados->estado.estado_partida, estados->estado.estado_chegada, estados->estado.simbolo_consumido, estados->estado.estado_partida);
+		//printf ("lido: %c %c %c ;\n", estados->estado.partida, estados->estado.chegada, estados->estado.simbolo_consumido, estados->estado.partida);
 		
-		if (estados->estado.estado_partida == estado_atual->estado_partida && estados->estado.simbolo_consumido==letra){
+		if (estados->estado.partida == estado_atual->partida && estados->estado.simbolo_consumido==letra){
 			
-			//printf ("\nencontrou! EP: %c EC: %c SIMBOLO: %c", estado_atual->estado_partida, estados->estado.estado_chegada, letra);
+			//printf ("\nencontrou! EP: %c EC: %c SIMBOLO: %c", estado_atual->partida, estados->estado.chegada, letra);
 			return &estados->estado;
 		}
 		
@@ -161,8 +161,8 @@ BOOL carrega_transicoes (){
 	while (!feof(arq)){
 		TRANSICAO estado;
 		
-		fscanf(arq, " %c %c %c\n", &estado.estado_partida, &estado.estado_chegada, &estado.simbolo_consumido);	
-		//printf(" %c %c %c\n", estado.estado_partida, estado.estado_chegada, estado.simbolo_consumido);	
+		fscanf(arq, " %c %c %c\n", &estado.partida, &estado.chegada, &estado.simbolo_consumido);	
+		//printf(" %c %c %c\n", estado.partida, estado.chegada, estado.simbolo_consumido);	
 		insere_lista(&conjunto_estados, cria_no_lista(estado));
 	}
 	//puts ("carregou as transacoes");
@@ -170,8 +170,8 @@ BOOL carrega_transicoes (){
 }
 
 void setEstadoAtual(TRANSICAO* atual, TRANSICAO transacao){
-	atual->estado_partida = transacao.estado_partida;
-	atual->estado_chegada = transacao.estado_chegada;
+	atual->partida = transacao.partida;
+	atual->chegada = transacao.chegada;
 	atual->simbolo_consumido = transacao.simbolo_consumido;
 }
 
@@ -196,7 +196,7 @@ BOOL faz_transicao(TRANSICAO* estado_atual, char letra_alfabeto){
 
 BOOL valida_transicao(TRANSICAO* estado_atual, char simbolo){
 	
-	estado_atual->estado_partida = estado_atual->estado_chegada;
+	estado_atual->partida = estado_atual->chegada;
 	
 	{
 	
@@ -222,8 +222,8 @@ BOOL valida_transicao(TRANSICAO* estado_atual, char simbolo){
 		return FALSE;
 	}
 	
-	if( strchr(ESTADOS, estado_atual->estado_partida) == NULL){
-		printf ("Nao pertence ao conjunto de estados: \'%c\'", estado_atual->estado_partida);
+	if( strchr(ESTADOS, estado_atual->partida) == NULL){
+		printf ("Nao pertence ao conjunto de estados: \'%c\'", estado_atual->partida);
 		return FALSE;
 	}
 	
@@ -247,7 +247,7 @@ int verifica_string(){
 		}
 	}
 	
-	( strchr(ESTADOS_FINAIS, estado_atual.estado_chegada) != NULL) ? puts ("sim") : puts ("nao");
+	( strchr(ESTADOS_FINAIS, estado_atual.chegada) != NULL) ? puts ("sim") : puts ("nao");
 }
 
 int main(){
