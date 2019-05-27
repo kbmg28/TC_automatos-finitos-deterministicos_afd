@@ -2,20 +2,17 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define TAM 10
+#define TAM 100
 #define LAMBDA ' '
 #define TRUE 1
 #define FALSE 0
 
 char input[TAM];
 typedef int BOOL;
-int TAM_ESTADOS, TAM_ALFABETO, TAM_ESTADOS_FINAIS;
 char *ESTADOS;
 char *ALFABETO;
 char ESTADO_INICIAL;
-char ESTADOS_FINAIS[5];
-
-
+char *ESTADOS_FINAIS;
 
 typedef struct Transicao{
 	char partida; 
@@ -44,8 +41,6 @@ PtrLista cria_no_lista (TRANSICAO estado){
 void insere_lista (PtrLista *lista, PtrLista novo){
 	PtrLista atual;
 	
-	
-	//puts ("\n\t\t--Inserir na lista--\n");
 	if (!*lista)	*lista = novo;
 	else{
 		atual = *lista;
@@ -54,29 +49,22 @@ void insere_lista (PtrLista *lista, PtrLista novo){
 			atual = atual->prox;
 		atual->prox = novo;
 	}
-	//printf ("\n\tElemento %d inserido no fim com sucesso!!\n\n", novo->chave);
 }
 
 void print_lista (PtrLista lista){	
 	if (lista == NULL)	return;
-	//puts ("\n\t--Lista--\n");
 	while (lista){
-		printf ("%c %c %c ;\n", lista->estado.partida, lista->estado.chegada, lista->estado.simbolo_consumido, lista->estado.partida);
+		printf ("%c %c %c\n", lista->estado.partida, lista->estado.chegada, lista->estado.simbolo_consumido, lista->estado.partida);
 		lista = lista->prox;
 	}
 }
 
-TRANSICAO* buscaTransacaoNoConjuntoDeEstados (PtrLista estados, TRANSICAO* estado_atual, char letra){	
+TRANSICAO* buscaTransacaoNoConjuntoDeEstados (PtrLista estados, TRANSICAO* estado_atual, char simbolo){	
 	if (estados == NULL)	return NULL;
-	//puts ("\n\t--Lista--\n");
+	
 	while (estados){
-		//printf ("lido: %c %c %c ;\n", estados->estado.partida, estados->estado.chegada, estados->estado.simbolo_consumido, estados->estado.partida);
-		
-		if (estados->estado.partida == estado_atual->partida && estados->estado.simbolo_consumido==letra){
-			
-			//printf ("\nencontrou! EP: %c EC: %c SIMBOLO: %c", estado_atual->partida, estados->estado.chegada, letra);
+		if (estados->estado.partida == estado_atual->partida && estados->estado.simbolo_consumido==simbolo)
 			return &estados->estado;
-		}
 		
 		estados = estados->prox;
 	}
@@ -97,90 +85,125 @@ void libera_lista (PtrLista *lista){
 	*lista = NULL;
 }
 
-
-
-
 FILE* abre_arquivo (const char* nome_arquivo){
 	FILE* arq = fopen(nome_arquivo, "r+");
 	
 	if (arq == NULL){
-		puts ("Erro de leitura");
+		puts ("Erro de leitura do arquivo");
 		exit (0);
 	}
 	
 	return arq;
 }
 
-
-BOOL carrega_estados(){
-	FILE* arq = abre_arquivo("estados.txt");
-	int i;
+void defineConfiguracao(char linha_arq[], char**ptr){
+	int i, j;
 	
-	for (TAM_ESTADOS=0; !feof(arq); TAM_ESTADOS++){
-		char estado;
-		fscanf(arq, " %c\n", &estado);		
+	*ptr = (char*) malloc(sizeof( strlen(linha_arq) / 2) + 1);
+	
+	for (i=0, j=0; i < strlen(linha_arq)-1; i++){
+		if (linha_arq[i] != ' '){
+			(*ptr)[j] = linha_arq[i];
+			j++;
+		}
+	}
+
+	(*ptr)[j]='\0';
+}
+
+BOOL carrega_estados(char linha_arq[]){
+	defineConfiguracao(linha_arq, &ESTADOS);
+//	printf ("\nESTADOS: %s", ESTADOS);	
+}
+
+BOOL carrega_alfabeto(char linha_arq[]){
+	defineConfiguracao(linha_arq, &ALFABETO);
+//	printf ("\nALFABETO: %s", ALFABETO);
+}
+
+BOOL validaEstadosAndAlfabeto(char estadoPartida, char estadoChegada, char simbolo){
+	
+	if( strchr(ALFABETO, simbolo) == NULL){
+		if (simbolo == LAMBDA)	{ printf ("lambda"); return TRUE; }
+		printf ("\t\'%c\' Nao pertence ao alfabeto\n", simbolo);
+		return FALSE;
 	}
 	
-	fseek(arq, 0, SEEK_SET);
-	ESTADOS = (char*) malloc(sizeof(TAM_ESTADOS+1));
+	if( strchr(ESTADOS, estadoPartida) == NULL){
+		printf ("\t\'%c\'Nao pertence ao conjunto de estados\n", estadoPartida);
+		return FALSE;
+	}
 	
-	for (i=0; !feof(arq); i++)
-		fscanf(arq, " %c\n", &ESTADOS[i]);
+	if( strchr(ESTADOS, estadoChegada) == NULL){
+		printf ("\t \'%c\'Nao pertence ao conjunto de estados\n", estadoChegada);
+		return FALSE;
+	}
 	
-	ESTADOS[TAM_ESTADOS]='\0';
-	fclose(arq);
+	return TRUE;
+}
+
+BOOL carrega_transicoes (char linha_arq[]){
+	TRANSICAO estado;
 	
+	estado.partida = linha_arq[0];
+	estado.chegada = linha_arq[2];
+	estado.simbolo_consumido = linha_arq[4];
+
+	if (validaEstadosAndAlfabeto(estado.partida, estado.chegada, estado.simbolo_consumido) == FALSE){
+		puts("\t Erro transicao");
+		exit(1);
+	}
+
+	insere_lista(&conjunto_estados, cria_no_lista(estado));
 }
 
 
-BOOL carrega_alfabeto(){
-	FILE* arq = abre_arquivo("alfabeto.txt");
-	int i;
-	
-	for (TAM_ALFABETO=0; !feof(arq); TAM_ALFABETO++){
-		char letra;
-		fscanf(arq, " %c\n", &letra);		
-	}
-	
-	fseek(arq, 0, SEEK_SET);
-	ALFABETO = (char*) malloc(sizeof(TAM_ALFABETO+1));
-	
-	for (i=0; !feof(arq); i++)
-		fscanf(arq, " %c\n", &ALFABETO[i]);
-	
-	ALFABETO[TAM_ALFABETO]='\0';
-	fclose(arq);
-	
+BOOL carrega_estados_finais(char linha_arq[]){
+	defineConfiguracao(linha_arq, &ESTADOS_FINAIS);
+//	printf ("\nESTADOS FINAIS: %s", ESTADOS_FINAIS);
 }
 
-
-
-BOOL carrega_transicoes (){
-	FILE *arq = abre_arquivo("transicoes.txt");
+char* carrega_script (){
+	FILE *arq = abre_arquivo("script.txt");
+	int i;
+	char* palavras_para_verificar;
+	char linha_arq[50];
 	
-	while (!feof(arq)){
+	for (i=1; !feof(arq); i++){
 		TRANSICAO estado;
 		
-		fscanf(arq, " %c %c %c\n", &estado.partida, &estado.chegada, &estado.simbolo_consumido);	
-		//printf(" %c %c %c\n", estado.partida, estado.chegada, estado.simbolo_consumido);	
-		insere_lista(&conjunto_estados, cria_no_lista(estado));
+		fgets(linha_arq, 50, arq);
+		printf(linha_arq);
+
+		if (!strcmp(linha_arq, "#\n")) break;
+		
+		switch(i){
+			case 1: carrega_estados(linha_arq); break;
+			case 2: carrega_alfabeto(linha_arq); break;
+			default: carrega_transicoes(linha_arq); 
+		}
 	}
-	//puts ("carregou as transacoes");
+	ESTADO_INICIAL = fgetc(arq);
+	fgetc(arq);
+	printf ("%c\n", ESTADO_INICIAL);
+
+	fgets (linha_arq, 50, arq);
+	printf(linha_arq);
+	carrega_estados_finais(linha_arq);
+
+	fgets (linha_arq, 50, arq);
+	puts(linha_arq);
+	palavras_para_verificar = (char*) malloc(sizeof(strlen(linha_arq)));
+	strcpy(palavras_para_verificar, linha_arq);
+
 	fclose (arq);
+	return palavras_para_verificar;
 }
 
 void setEstadoAtual(TRANSICAO* atual, TRANSICAO transacao){
 	atual->partida = transacao.partida;
 	atual->chegada = transacao.chegada;
 	atual->simbolo_consumido = transacao.simbolo_consumido;
-}
-
-void printStringComEspaco(const char *str){
-	int i;
-	
-	for (i=0; i< strlen(str); i++)
-		printf ("%c ", str[i]);
-	puts (";");
 }
 
 BOOL faz_transicao(TRANSICAO* estado_atual, char letra_alfabeto){
@@ -198,35 +221,9 @@ BOOL valida_transicao(TRANSICAO* estado_atual, char simbolo){
 	
 	estado_atual->partida = estado_atual->chegada;
 	
-	{
-	
-	/*
-	
-	if (simbolo == '0')	
-		faz_transicao(estado_atual, 0);
-	
-	
-	else if (simbolo == '1')
-		faz_transicao(estado_atual, 1);
-
-	else
-		return FALSE;	
-	
-	return TRUE;
-	
-	*/
-	}	
-	
-	if( strchr(ALFABETO, simbolo) == NULL){
-		printf ("Nao pertence ao alfabeto: \'%c\' em \'%s\'", simbolo, input);
+	if (validaEstadosAndAlfabeto(estado_atual->partida, estado_atual->chegada, simbolo) == FALSE){
 		return FALSE;
 	}
-	
-	if( strchr(ESTADOS, estado_atual->partida) == NULL){
-		printf ("Nao pertence ao conjunto de estados: \'%c\'", estado_atual->partida);
-		return FALSE;
-	}
-	
 	return TRUE;
 }
 
@@ -242,7 +239,6 @@ int verifica_string(){
 		if (valida_transicao(&estado_atual, input[i]) == TRUE)
 			faz_transicao(&estado_atual, input[i]);
 		else{
-			puts ("\n\n\t\tErro ");
 			return FALSE;
 		}
 	}
@@ -251,33 +247,25 @@ int verifica_string(){
 }
 
 int main(){
-	FILE* arq = abre_arquivo("palavras.txt");
+	char* palavras_para_verificar;
+	char*ptr;
 
-	carrega_estados();
-	printStringComEspaco(ESTADOS);
+	palavras_para_verificar = carrega_script();
 	
-	carrega_alfabeto();
-	printStringComEspaco(ALFABETO);
-	
-	carrega_transicoes();
-	print_lista(conjunto_estados);
-	
-	ESTADO_INICIAL = 'A';
-	strcpy(ESTADOS_FINAIS, "BC");
-	
-	printf ("# ;\n%c ;\n", ESTADO_INICIAL);
-	printStringComEspaco(ESTADOS_FINAIS);
-	
-	while (!feof(arq)){
-		
-		fscanf(arq, " %s", input);	
-		verifica_string();	
-	}
-	
-	
+	ptr = strtok(palavras_para_verificar, " ");
+	do{
+		if(ptr) {
+			strcpy(input, ptr);
+			verifica_string();
+		}
+		ptr = strtok('\0', " ");
+
+	}while(ptr);
+
+
 	libera_lista(&conjunto_estados);
-	fclose(arq);
-	puts ("\n");
-	system("pause");
+	free(ALFABETO);
+	free(ESTADOS);
+	free(ESTADOS_FINAIS);
 	return (0);
 }
