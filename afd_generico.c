@@ -9,9 +9,12 @@
 
 char input[TAM];
 typedef int BOOL;
-int TAM_ESTADOS, TAM_ALFABETO;
+int TAM_ESTADOS, TAM_ALFABETO, TAM_ESTADOS_FINAIS;
 char *ESTADOS;
 char *ALFABETO;
+char ESTADO_INICIAL;
+char ESTADOS_FINAIS[5];
+
 
 
 typedef struct Transicao{
@@ -56,12 +59,29 @@ void insere_lista (PtrLista *lista, PtrLista novo){
 
 void print_lista (PtrLista lista){	
 	if (lista == NULL)	return;
-	puts ("\n\t--Lista--\n");
+	//puts ("\n\t--Lista--\n");
 	while (lista){
-		printf ("-> %c ", lista->estado.simbolo_consumido);
+		printf ("%c %c %c ;\n", lista->estado.estado_partida, lista->estado.estado_chegada, lista->estado.simbolo_consumido, lista->estado.estado_partida);
 		lista = lista->prox;
 	}
-	printf ("\n\n");
+}
+
+TRANSICAO* buscaTransacaoNoConjuntoDeEstados (PtrLista estados, TRANSICAO* estado_atual, char letra){	
+	if (estados == NULL)	return NULL;
+	//puts ("\n\t--Lista--\n");
+	while (estados){
+		//printf ("lido: %c %c %c ;\n", estados->estado.estado_partida, estados->estado.estado_chegada, estados->estado.simbolo_consumido, estados->estado.estado_partida);
+		
+		if (estados->estado.estado_partida == estado_atual->estado_partida && estados->estado.simbolo_consumido==letra){
+			
+			//printf ("\nencontrou! EP: %c EC: %c SIMBOLO: %c", estado_atual->estado_partida, estados->estado.estado_chegada, letra);
+			return &estados->estado;
+		}
+		
+		estados = estados->prox;
+	}
+	
+	return NULL;
 }
 
 void libera_lista (PtrLista *lista){
@@ -142,9 +162,10 @@ BOOL carrega_transicoes (){
 		TRANSICAO estado;
 		
 		fscanf(arq, " %c %c %c\n", &estado.estado_partida, &estado.estado_chegada, &estado.simbolo_consumido);	
+		//printf(" %c %c %c\n", estado.estado_partida, estado.estado_chegada, estado.simbolo_consumido);	
 		insere_lista(&conjunto_estados, cria_no_lista(estado));
 	}
-	
+	//puts ("carregou as transacoes");
 	fclose (arq);
 }
 
@@ -154,24 +175,32 @@ void setEstadoAtual(TRANSICAO* atual, TRANSICAO transacao){
 	atual->simbolo_consumido = transacao.simbolo_consumido;
 }
 
-BOOL faz_transicao(TRANSICAO* estado_atual, int pos){
-	TRANSICAO transicoes[2][4] = {  
-		{	{'A', 'B', '0'}, {'B', 'A', '0'}, {'C', 'D', '0'}, {'D', 'C', '0'} }, 
-		{	{'A', 'C', '1'}, {'B', 'D', '1'}, {'C', 'A', '1'}, {'D', 'B', '1'} }	};	
+void printStringComEspaco(const char *str){
+	int i;
 	
-	
-	switch (estado_atual->estado_partida){
-		case 'A': setEstadoAtual(estado_atual, transicoes[pos][0]); break;
-		case 'B': setEstadoAtual(estado_atual, transicoes[pos][1]); break;
-		case 'C': setEstadoAtual(estado_atual, transicoes[pos][2]); break;
-		case 'D': setEstadoAtual(estado_atual, transicoes[pos][3]); break;
-		default : return FALSE;
+	for (i=0; i< strlen(str); i++)
+		printf ("%c ", str[i]);
+	puts (";");
+}
+
+BOOL faz_transicao(TRANSICAO* estado_atual, char letra_alfabeto){
+	TRANSICAO* transicao = buscaTransacaoNoConjuntoDeEstados(conjunto_estados, estado_atual, letra_alfabeto);
+
+	if (transicao != NULL){
+		setEstadoAtual(estado_atual, *transicao);
+		return TRUE;
 	}
-	return TRUE;
+
+	return FALSE;
 }
 
 BOOL valida_transicao(TRANSICAO* estado_atual, char simbolo){
+	
 	estado_atual->estado_partida = estado_atual->estado_chegada;
+	
+	{
+	
+	/*
 	
 	if (simbolo == '0')	
 		faz_transicao(estado_atual, 0);
@@ -184,48 +213,71 @@ BOOL valida_transicao(TRANSICAO* estado_atual, char simbolo){
 		return FALSE;	
 	
 	return TRUE;
+	
+	*/
+	}	
+	
+	if( strchr(ALFABETO, simbolo) == NULL){
+		printf ("Nao pertence ao alfabeto: \'%c\' em \'%s\'", simbolo, input);
+		return FALSE;
+	}
+	
+	if( strchr(ESTADOS, estado_atual->estado_partida) == NULL){
+		printf ("Nao pertence ao conjunto de estados: \'%c\'", estado_atual->estado_partida);
+		return FALSE;
+	}
+	
+	return TRUE;
 }
 
 
 int verifica_string(){
 	int i;
 	
-	TRANSICAO estado_atual = { 'S', 'A', LAMBDA};
+	TRANSICAO estado_atual = { 'S', ESTADO_INICIAL, LAMBDA};
 	
 	printf  ("%10s ", input);
 	for (i=0; input[i] != '\0'; i++)	{
 		
-		if (valida_transicao(&estado_atual, input[i]) == TRUE){
-			// tratamento se necessario
+		if (valida_transicao(&estado_atual, input[i]) == TRUE)
+			faz_transicao(&estado_atual, input[i]);
+		else{
+			puts ("\n\n\t\tErro ");
+			return FALSE;
 		}
-			
 	}
 	
-	( estado_atual.estado_chegada == 'C' || estado_atual.estado_chegada == 'B') ? puts ("sim") : puts ("nao");
-		
+	( strchr(ESTADOS_FINAIS, estado_atual.estado_chegada) != NULL) ? puts ("sim") : puts ("nao");
 }
 
 int main(){
-/*	FILE* arq = abre_arquivo("palavras.txt");
+	FILE* arq = abre_arquivo("palavras.txt");
+
+	carrega_estados();
+	printStringComEspaco(ESTADOS);
+	
+	carrega_alfabeto();
+	printStringComEspaco(ALFABETO);
+	
+	carrega_transicoes();
+	print_lista(conjunto_estados);
+	
+	ESTADO_INICIAL = 'A';
+	strcpy(ESTADOS_FINAIS, "BC");
+	
+	printf ("# ;\n%c ;\n", ESTADO_INICIAL);
+	printStringComEspaco(ESTADOS_FINAIS);
 	
 	while (!feof(arq)){
 		
-		fscanf(arq, "%s", input);	
+		fscanf(arq, " %s", input);	
 		verifica_string();	
 	}
 	
-	fclose(arq);
-
-	carrega_transicoes();
-	print_lista(conjunto_estados);
+	
 	libera_lista(&conjunto_estados);
-*/
-	carrega_estados();
-	carrega_alfabeto();
-	
-	puts (ALFABETO);
-	puts(ESTADOS);
-	
+	fclose(arq);
 	puts ("\n");
 	system("pause");
+	return (0);
 }
