@@ -43,10 +43,10 @@ void carrega_script ();
 
 void defineConfiguracao(char linha_arq[], char**ptr);
 void escolheOpcao(int opcao, char *informacao);
-BOOL carrega_estados(char linha_arq[]);
-BOOL carrega_alfabeto(char linha_arq[]);
-BOOL carrega_transicoes (char linha_arq[]);
-BOOL carrega_estados_finais(char linha_arq[]);
+void carrega_estados(char linha_arq[]);
+void carrega_alfabeto(char linha_arq[]);
+void carrega_transicoes (char linha_arq[]);
+void carrega_estados_finais(char linha_arq[]);
 
 BOOL valida_transicao(TRANSICAO* estado_atual, char simbolo);
 BOOL validaEstadosAndAlfabeto(char estadoPartida, char estadoChegada, char simbolo);

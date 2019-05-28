@@ -74,8 +74,7 @@ void carrega_script (){
 	char linha_arq[50];
 	
 	for (i=1; !feof(arq); i++){
-		TRANSICAO estado;
-		
+
 		fgets(linha_arq, 50, arq);
 		printf(linha_arq);
 
@@ -118,17 +117,17 @@ void escolheOpcao(int opcao, char *informacao){
 	}
 }
 
-BOOL carrega_estados(char linha_arq[]){
+void carrega_estados(char linha_arq[]){
 	defineConfiguracao(linha_arq, &ESTADOS);
 //	printf ("\nESTADOS: %s", ESTADOS);	
 }
 
-BOOL carrega_alfabeto(char linha_arq[]){
+void carrega_alfabeto(char linha_arq[]){
 	defineConfiguracao(linha_arq, &ALFABETO);
 //	printf ("\nALFABETO: %s", ALFABETO);
 }
 
-BOOL carrega_transicoes (char linha_arq[]){
+void carrega_transicoes (char linha_arq[]){
 	TRANSICAO estado;
 	
 	estado.partida = linha_arq[0];
@@ -143,7 +142,7 @@ BOOL carrega_transicoes (char linha_arq[]){
 	insere_lista(&conjunto_estados, cria_no_lista(estado));
 }
 
-BOOL carrega_estados_finais(char linha_arq[]){
+void carrega_estados_finais(char linha_arq[]){
 	defineConfiguracao(linha_arq, &ESTADOS_FINAIS);
 //	printf ("\nESTADOS FINAIS: %s", ESTADOS_FINAIS);
 }
