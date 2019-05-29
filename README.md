@@ -7,9 +7,13 @@
         @see: https://terminaldeinformacao.com/2015/10/08/como-instalar-e-configurar-o-gcc-no-windows-mingw/
 
 # Executar via console
-	$ gcc afd_generico.c -o main
-	$ ./main (linux)
-	$ main (windows)
+	-> linux
+		$ gcc afd_generico.c -o main.out
+		$ ./main    ou    $ main.out
+		
+	-> windows
+		$ gcc afd_generico.c -o main.exe
+		$ main.exe
 
   # Bibliotecas
         Mais informações: https://www.tutorialspoint.com/c_standard_library/stdlib_h.htm
