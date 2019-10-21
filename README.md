@@ -1,4 +1,4 @@
-# TC_automatos-finitos-deterministicos_afd
+# automatos-finitos-deterministicos_afd
   Dado uma quíntupla qualquer e um conjunto de palavras, retornar se a cadeia é aceita ou não.
   
 # Pré-requisitos
